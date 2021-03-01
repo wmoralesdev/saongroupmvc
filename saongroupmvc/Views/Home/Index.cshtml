@@ -1,0 +1,163 @@
+﻿@{
+    ViewBag.Title = "CovidWebApp";
+}
+
+<div class="modal" id="modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Hey, read me first please!</h5>
+            </div>
+            <div class="modal-body">
+                <p>Thanks for the oportunity to be part of the team!</p>
+                <p>Here's a quick note of some aspects about the web application.</p>
+                <ul>
+                    <li>
+                        CovidAPI doesn't allow to much variety as it lacks some primordial logic within some Endpoints.
+                        Like sorting and pagination methods. <br />
+                        <a href="https://github.com/axisbits/covid-api/issues/14" target="_blank">Feature requested for future ussages</a>
+                    </li>
+                    <li>CovidWebApp lists regions/provinces with data of previous day (yesterdary registered)</li>
+                    <li>
+                        When getting data from a specific country/province, there's an array of every stored/registered case
+                        in each day, and there's no way of getting a general preview of the province. This causes the results to be
+                        different whenever the app is run.
+                    </li>
+                    <li>
+                        Regarding performance, every request is asynchronous and doesn't handle every Json property returned
+                        in the API. This is mainly for two reasons:
+                        <ol>
+                            <li>Only data for Region/Province, Deaths and Confirmed cases are needed</li>
+                            <li>
+                                A request with complete information freezes a little bit, even when testing in Swagger main route
+                                the page brokes.
+                            </li>
+                        </ol>
+                    </li>
+                    <li>
+                        Don't worry if loading takes 2 - 3 minutes in getting data of every regions as the APIs returns and handle
+                        data a little slow. This loading time should only be long when the application is first loaded.
+                        When toggling between already asked data, it's expected to be much faster as results are cached.
+                    </li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <strong>Click outside to dismiss!</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="text-center container">
+    <div class="row my-5 justify-content-center">
+        <h1>TOP 10 COVID CASES</h1>
+    </div>
+    <div class="row border-top border-bottom justify-content-between py-2">
+        <div class="col-4 d-flex justify-content-around">
+            <div class="col-6 p-0" id="region-select-container">
+                <div class="spinner-border" role="status" id="region-spinner">
+                    <span class="sr-only">Loading...</span>
+                </div>
+            </div>
+            <div class="col-6">
+                <button class="w-100 btn btn-primary" id="report">
+                    Report
+                </button>
+            </div>
+        </div>
+        <div class="col-6 d-flex justify-content-between">
+            <button class="col-3 btn btn-primary" id="json">JSON</button>
+            <button class="col-3 btn btn-primary" id="xml">XML</button>
+            <button class="col-3 btn btn-primary" id="csv">CSV</button>
+        </div>
+    </div>
+    <div class="d-flex flex-wrap justify-content-center align-items-start">
+        <div class="spinner-border my-4" role="status" id="cases-spinner">
+            <span class="sr-only">Loading...</span>
+        </div>
+        <div class="w-100" id="table-loading">
+            <p class="my-4">Empty at the moment, select a region first!</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    function disabledButtons(show) {
+        $("button").each((index, btn) => { btn.disabled = show })
+    }
+
+    $(document).ready(() => {
+        disabledButtons(true)
+        $("#report").prop('disabled', false)
+        $("#modal").modal('show')
+        $("#cases-spinner").hide()
+
+        $.ajax({
+            url: '@Url.Action("Regions", "Home")',
+            cache: false,
+            type: "GET",
+            dataType: "html",
+            success: (data) => {
+                $("#region-spinner").hide()
+
+                $("#region-select-container").html(data)
+            }
+        })
+    })
+
+    $("#report").click(e => {
+        disabledButtons(true)
+
+        e.preventDefault()
+        $("#table-loading").html("")
+
+        $("#table-loading").html("")
+        var currentIso = $("#region-select-container > select").val()
+
+        $("#cases-spinner").show()
+        if (currentIso.toLowerCase() !== "regions") {
+            $.ajax({
+                url: '@Url.Action("ProvinceCases", "Home")',
+                cache: false,
+                data: { iso: currentIso },
+                type: "GET",
+                dataType: "html",
+                success: (data) => {
+                    disabledButtons(false)
+                    $("#cases-spinner").hide()
+
+                    $("#table-loading").html(data)
+                }
+            })
+        }
+        else {
+            $.ajax({
+                url: '@Url.Action("RegionCases", "Home")',
+                cache: false,
+                type: "GET",
+                dataType: "html",
+                success: (data) => {
+                    disabledButtons(false)
+                    $("#cases-spinner").hide()
+
+                    $("#table-loading").html(data)
+                }
+            })
+        }
+    })
+
+    $("#json").click(e => {
+        e.preventDefault()
+        window.location = '@Url.Action("DownloadJsonFile", "Home")'
+    })
+
+    $("#xml").click(e => {
+        e.preventDefault()
+        window.location = '@Url.Action("DownloadXmlFile", "Home")'
+    })
+
+    $("#csv").click(e => {
+        e.preventDefault()
+        window.location = '@Url.Action("DownloadCsvFile", "Home")'
+    })
+</script>

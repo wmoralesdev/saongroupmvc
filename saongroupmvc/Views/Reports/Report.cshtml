@@ -1,0 +1,33 @@
+﻿@{
+    @model saongroupmvc.Models.Reports.DisplayReportListVm
+}
+
+<table class="table">
+    <thead class="thead-light">
+        <tr>
+            <th id="change-th">REGIONS</th>
+            <th>CASES</th>
+            <th>DEATHS</th>
+        </tr>
+    </thead>
+    <tbody>
+        @{ if (Model == null || Model.reports.Count == 0)
+            {
+                <tr>
+                    <td colspan="3">Empty at the moment, load something first!</td>
+                </tr>
+            }
+            else
+            {
+                foreach (var field in Model.reports)
+                {
+                    <tr>
+                        <th>@field.Name</th>
+                        <th>@field.Cases</th>
+                        <th>@field.Deaths</th>
+                    </tr>
+                }
+            }
+        }
+    </tbody>
+</table>

@@ -1,0 +1,22 @@
+﻿@{
+    @model saongroupmvc.Models.Regions.RegionListVm
+}
+
+<select name="region" id="region-select" class="h-100 w-100">
+    <option value="regions">Regions</option>
+    @foreach (var region in Model.regions)
+    {
+        <option value="@region.Iso">@region.Name</option>
+    }
+</select>
+
+<script language="javascript">
+    $("#region-select").change(() => {
+        var selectedItem = $("#region-select").find(":selected").val().toString();
+
+        if (selectedItem === "regions")
+            $("#change-th").html("REGIONS");
+        else
+            $("#change-th").html("PROVINCE");
+    });
+</script>
